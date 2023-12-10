@@ -38,6 +38,7 @@ def create_app():
                           color=0x00ff00)
         embed.add_field(name="Tác giả", value="Nguyen Van An")
         embed.add_field(name="Ngôn ngữ", value="Python")
+        embed.add_field(name="Mã nguồn", value="https://github.com/21010647AnNV/AoCBOT")
         embed.set_footer(text="© 2023 AoCBOT")
         await ctx.send(embed=embed)
     
@@ -77,6 +78,7 @@ def create_app():
     `!leaderboard`: Flex nhẹ cái điểm
     `!hello`: Tự kỷ
     `!ping`: Ping mạng
+    `!info`: Thông tin bot, mã nguồn
     """
         await ctx.send(help_message)
 
