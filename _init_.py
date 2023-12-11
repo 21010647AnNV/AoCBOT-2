@@ -1,5 +1,5 @@
 import discord
-from discord.ext.commands import *
+from discord.ext import commands
 import requests
 import os
 from dotenv import load_dotenv
@@ -7,17 +7,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def create_app():
-    intents = discord.Intents.all()
-    intents.members = True
+    class Bot(commands.Bot):
+        def __init__(self, intents: discord.Intents, **kwargs):
+            super().__init__(command_prefix="!", intents=intents, case_insensitive=True)
 
-    bot = Bot(command_prefix='!', intents=intents)
+        async def on_ready(self):
+            print(f'Bot đã kết nối thành công: {self.user.name}')
+            await self.tree.sync()
+
+    intents = discord.Intents.all()
+    bot = Bot(intents=intents)
 
     leaderboard_url = 'https://adventofcode.com/2023/leaderboard/private/view/1763801.json'
-    session_id = os.getenv('SESSION_ID')
-
-    @bot.event
-    async def on_ready():
-        print(f'Bot đã kết nối thành công: {bot.user.name}')
+    session_id = os.getenv("SESSION_ID")
 
     @bot.event
     async def on_member_join(member):
@@ -26,29 +28,29 @@ def create_app():
             detailMessage = 'Chao mung {0.mention} den voi {1.name}!'.format(member, guild)
             await guild.system_channel.send(detailMessage)
 
-    @bot.command(name='hello')
-    async def hello(ctx):
-        author = ctx.message.author
-        await ctx.send(f'Xin chào, {author.mention}!')
+    @bot.hybrid_command(name='hello', description = 'Tự kỷ')
+    async def hello(interaction: discord.Integration):
+        author = interaction.message.author
+        await interaction.reply(content=f'Xin chào, {author.mention}!')
 
-    @bot.command(name='info')
-    async def info(ctx):
+    @bot.hybrid_command(name='info', description='Thông tin bot, mã nguồn')
+    async def info(interaction: discord.Integration):
         embed = discord.Embed(title="Thông tin về Bot",
-                          description="AoC BOT",
-                          color=0x00ff00)
+                            description="AoC BOT",
+                            color=0x00ff00)
         embed.add_field(name="Tác giả", value="Nguyen Van An")
         embed.add_field(name="Ngôn ngữ", value="Python")
         embed.add_field(name="Mã nguồn", value="https://github.com/21010647AnNV/AoCBOT")
         embed.set_footer(text="© 2023 AoCBOT")
-        await ctx.send(embed=embed)
-    
-    @bot.command(name='ping')
-    async def ping(ctx):
+        await interaction.reply(embed=embed)
+        
+    @bot.hybrid_command(name='ping', description='Ping mạng')
+    async def ping(interaction: discord.Integration):
         latency = round(bot.latency * 1000)  
-        await ctx.send(f'Độ trễ hiện tại của bot là {latency} ms.')
+        await interaction.reply(f'Độ trễ hiện tại của bot là {latency} ms.')
 
-    @bot.command(name='leaderboard')
-    async def leaderboard(ctx):
+    @bot.hybrid_command(name='leaderboard', description='Flex nhẹ cái điểm')
+    async def leaderboard(interaction: discord.Integration):
         headers = {'Cookie': f'session={session_id}'}
         response = requests.get(leaderboard_url, headers=headers)
 
@@ -66,12 +68,12 @@ def create_app():
                 local_score = member_data['local_score']
                 embed.add_field(name=member_name, value=f"Score: {local_score}★", inline=False)
 
-            await ctx.send(embed=embed)
+            await interaction.reply(embed=embed)
         else:
-            await ctx.send(f"Failed to fetch leaderboard. Status code: {response.status_code}")
+            await interaction.reply(f"Failed to fetch leaderboard. Status code: {response.status_code}")
 
-    @bot.command(name='menu')
-    async def menu(ctx):
+    @bot.hybrid_command(name='menu', description='Hiển thị danh sách câu lệnh')
+    async def menu(interaction: discord.Integration):
         help_message = """
     Danh sách câu lệnh:
     `!menu`: Hiển thị danh sách câu lệnh
@@ -80,9 +82,7 @@ def create_app():
     `!ping`: Ping mạng
     `!info`: Thông tin bot, mã nguồn
     """
-        await ctx.send(help_message)
+        await interaction.reply(help_message)
 
-
-
-    bot.run(os.getenv('TOKEN'))
+    bot.run(os.getenv("TOKEN"))
 
