@@ -81,8 +81,46 @@ def create_app():
     `!hello`: Tự kỷ
     `!ping`: Ping mạng
     `!info`: Thông tin bot, mã nguồn
+    `!shorttime`: The flash of AoC
     """
         await interaction.reply(help_message)
+
+    @bot.hybrid_command(name='shorttime', description='Thời gian ngắn nhất')
+    async def shorttime(interaction: discord.Integration, day: str):
+        headers= {'Cookie': f'session={session_id}'}
+        response = requests.get(leaderboard_url, headers=headers)
+
+        # http debug
+        if response.status_code == 200:
+            data = response.json()
+            members = data['members']
+
+            sorted_members = sorted(
+            members.items(),
+            key=lambda x: x[1]['completion_day_level'].get(str(day), {}).get('1', {}).get('get_star_ts', float('inf')) or float('inf')
+            )
+
+            for member_id, member_data in sorted_members:
+                star_ts = member_data['completion_day_level'].get(str(day), {}).get('1', {}).get('get_star_ts')
+                if star_ts:
+                    fastest_member_id = member_id
+                    fastest_member_data = member_data
+                    break
+            else:
+                await interaction.reply(f"No completed data !")
+                return
+
+            fastest_member_name = fastest_member_data['name']
+            fastest_timestamp = fastest_member_data['completion_day_level'].get(str(day), {}).get('1', {}).get('get_star_ts', 0)
+
+            embed = discord.Embed(title=f'The flash ngày: {day}', color=0x00ffff)
+            embed.add_field(name="Member", value=fastest_member_name, inline=False)
+            embed.add_field(name="Completion Time", value=fastest_timestamp, inline=False)
+
+            await interaction.reply(embed=embed)
+        else:
+            await interaction.reply(f'Fail to fetch!. Status code: {response.status_code}')
+        
 
     bot.run(os.getenv("TOKEN"))
 
