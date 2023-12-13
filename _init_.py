@@ -113,6 +113,11 @@ def create_app():
             fastest_member_name = fastest_member_data['name']
             fastest_timestamp = fastest_member_data['completion_day_level'].get(str(day), {}).get('1', {}).get('get_star_ts', 0)
 
+            if fastest_timestamp:
+                fastest_timestamp = datetime.utcfromtimestamp(fastest_timestamp).strftime('%Y-%m-%d %H:%M:%S UTC')
+            else:
+                fastest_timestamp = "Not completed"
+
             embed = discord.Embed(title=f'The flash ngày: {day}', color=0x00ffff)
             embed.add_field(name="Member", value=fastest_member_name, inline=False)
             embed.add_field(name="Completion Time", value=fastest_timestamp, inline=False)
@@ -120,7 +125,28 @@ def create_app():
             await interaction.reply(embed=embed)
         else:
             await interaction.reply(f'Fail to fetch!. Status code: {response.status_code}')
-        
 
+    @bot.hybrid_command(name='poop', description='Ẩu lên đìa')
+    async def poop(interaction: discord.Integration, target_user: discord.User = None):
+        author_name = interaction.author.name
+        poop_message = f"""``` 
+    ⠀⠀⠀⠀⠀⢀⣤⣶⣶⣤⡀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿⣿⡄⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠹⣿⣿⣿⣿⡿⠁⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣦⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿⣿⣿⡀⠀⠀⠀
+⠀⠀⠀⠀⢠⣿⣿⣿⣿⡿⣿⣿⣧⣀⠀⠀
+⠀⠀⠀⠀⢺⣿⣿⣿⣿⣧⣬⣻⢿⣿⣿⡦
+⠀⠀⠀⠀⠀⠙⠻⠿⢿⣿⣿⣿⣿⡏⠛⠁
+⠀⠀⠀⣀⠀⠀⠀⠀⠀⠀⣽⣿⡿⠁⠀⠀
+⠀⢀⡠⣿⣷⣤⡀⠀⠀⢸⣿⣿⠃⠀⠀⠀
+⠰⠿⠿⠿⠿⠿⠇⠀⠠⠿⠿⠏⠀⠀⠀⠀```"""
+        if target_user:
+            poop_message += f"\n**" + "Ẩu lên đìa  " + f"{target_user.mention}**"
+        
+        await interaction.reply(content=f"{author_name}\n" + poop_message)
+        
     bot.run(os.getenv("TOKEN"))
 
